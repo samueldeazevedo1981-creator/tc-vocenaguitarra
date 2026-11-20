@@ -23,9 +23,15 @@ class Handler(SimpleHTTPRequestHandler):
     def parse_request(self):
         if not super().parse_request():
             return False
-        allowed_host = os.environ.get("APP_HOST", "appvocenaguitarra.samueldeazevedo.com.br").lower()
+        configured_host = os.environ.get("APP_HOST")
+        allowed_hosts = {configured_host.lower()} if configured_host else {
+            "tc-vocenaguitarra.vercel.app",
+            "appvocenaguitarra.samueldeazevedo.com.br",
+        }
+        if deployment_host := os.environ.get("VERCEL_URL"):
+            allowed_hosts.add(deployment_host.lower())
         host = self.headers.get("Host", "").lower()
-        if os.environ.get("VERCEL") == "1" and host != allowed_host:
+        if os.environ.get("VERCEL") == "1" and host not in allowed_hosts:
             self.send_error(404)
             return False
         return True
