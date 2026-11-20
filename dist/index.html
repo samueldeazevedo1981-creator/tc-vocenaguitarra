@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101510">
+  <link rel="icon" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./install.js" defer></script>
+  <title>Trucker Cap Você na Guitarra</title>
+</head>
+<body>
+  <main>
+    <header>
+      <img src="./icon-192.png" alt="" width="64" height="64">
+      <div><p>Trucker Cap Studio</p><h1>Você na Guitarra</h1></div>
+    </header>
+    <nav class="actions app-actions" aria-label="Aplicativo">
+      <button id="installApp" type="button" class="secondary" aria-haspopup="dialog">Instalar app</button>
+      <a href="./manual-instalacao.html">Manual de instruções</a>
+    </nav>
+    <p>Isole a guitarra para tirar riffs de ouvido ou pratique com uma base da sua música.</p>
+    <section aria-label="Separar guitarra">
+      <label for="file">Música em MP3</label>
+      <input id="file" type="file" accept=".mp3,audio/mpeg">
+      <div class="actions">
+        <button id="separate" disabled>Separar guitarra</button>
+        <button id="cancel" class="secondary" hidden>Cancelar</button>
+      </div>
+      <progress id="progress" max="1" hidden aria-label="Progresso"></progress>
+      <p id="status" role="status">Escolha um MP3. O primeiro uso baixa o modelo de aproximadamente 38 MB.</p>
+    </section>
+    <section id="results" aria-label="Faixas para estudar" hidden>
+      <h2 id="songTitle"></h2>
+      <label for="mode">Faixa de estudo</label>
+      <select id="mode">
+        <option value="original">Original</option>
+        <option value="guitar">Guitarra isolada</option>
+        <option value="backing">Sem guitarra</option>
+        <option value="instrumental">Sem voz e guitarra</option>
+      </select>
+      <div class="actions">
+        <button id="play" hidden>Ouvir</button>
+        <button id="save" class="secondary">Baixar MP3</button>
+      </div>
+      <audio id="original" controls preload="metadata"></audio>
+      <div id="transport" hidden>
+        <label for="seek">Posição <span id="position"></span></label>
+        <input type="range" id="seek" min="0" max="1" value="0" step="0.01">
+      </div>
+    </section>
+    <section id="setlist" aria-labelledby="setlistTitle">
+      <h2 id="setlistTitle">Setlist</h2>
+      <p>Salve a ordem e as faixas editadas para reabrir neste navegador.</p>
+      <p id="offlineStatus" role="status" hidden></p>
+      <div class="actions">
+        <button id="saveSetlist" disabled>Salvar setlist</button>
+        <button id="openSetlist" class="secondary">Abrir setlist salvo</button>
+      </div>
+      <p id="emptySetlist">As músicas aparecem aqui depois de separadas.</p>
+      <ol id="songs"></ol>
+    </section>
+    <footer>
+      <p>© 2026 Samuel de Azevedo. Todos os direitos reservados.</p>
+      <a href="./LICENSES.txt">Créditos e licenças</a>
+    </footer>
+  </main>
+  <dialog id="installHelp" class="guide-dialog" aria-labelledby="installTitle">
+<form method="dialog"><button class="dialog-close" aria-label="Fechar instalação">Fechar</button></form>
+<h2 id="installTitle">Instalar app</h2>
+<p id="installStatus" role="status" hidden></p>
+<dl id="installSteps" class="install-platforms">
+<dt data-install-platform="android">Android · Chrome</dt><dd data-install-platform="android">Abra o menu ⋮ e toque em <b>Adicionar à tela inicial</b> ou <b>Instalar app</b>. Confirme quando solicitado.</dd>
+<dt data-install-platform="ios">iPhone e iPad · Safari</dt><dd data-install-platform="ios">Abra <b>Compartilhar → Adicionar à Tela de Início</b>. Ative <b>Abrir como app da web</b> se aparecer e toque em <b>Adicionar</b>.</dd>
+<dt data-install-platform="desktop">Computador · Chrome ou Edge</dt><dd data-install-platform="desktop">No Chrome, abra <b>⋮ → Transmitir, salvar e compartilhar → Instalar esta página como um app</b>. No Edge, procure <b>Aplicativos → Instalar este site como um aplicativo</b>.</dd>
+<dt data-install-platform="mac">Mac · Safari ou Chrome</dt><dd data-install-platform="mac">No Safari do macOS Sonoma 14 ou posterior, use <b>Arquivo → Adicionar ao Dock</b>. No Chrome, use a opção de instalar a página no menu ⋮.</dd>
+</dl>
+<p id="installBrowserTip">Se abriu o link pelo Instagram ou WhatsApp, abra este endereço no Safari (iPhone e iPad) ou no Chrome. Se a opção de instalar não aparecer, experimente um navegador atualizado ou salve o endereço nos favoritos.</p>
+<p><a href="./manual-instalacao.html">Ver manual completo de instalação</a></p>
+</dialog>
+  <script type="module" src="./estudo.js"></script>
+</body>
+</html>
