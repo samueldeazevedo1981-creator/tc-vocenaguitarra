@@ -1,5 +1,5 @@
 const CACHE_PREFIX='trucker-cap-estudo-offline-';
-const CACHE=CACHE_PREFIX+'2';
+const CACHE=CACHE_PREFIX+'3';
 const assets=[
   './index.html','./style.css','./estudo.js','./audio-utils.js',
   './faixas.js','./setlist-storage.js','./mp3-worker.js',

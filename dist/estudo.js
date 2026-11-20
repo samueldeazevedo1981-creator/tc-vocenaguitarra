@@ -400,7 +400,7 @@ async function prepararAberturaOffline() {
     const shell=new URL('./index.html',registration.scope).href;
     const ready=async()=>{
       if(!navigator.serviceWorker.controller)return;
-      const cached=await caches.match(shell,{cacheName:'trucker-cap-estudo-offline-2'});
+      const cached=await caches.match(shell,{cacheName:'trucker-cap-estudo-offline-3'});
       if(cached)indicator.textContent='App pronto para abrir offline neste navegador.';
     };
     navigator.serviceWorker.addEventListener('controllerchange',()=>{ready().catch(()=>{});});
