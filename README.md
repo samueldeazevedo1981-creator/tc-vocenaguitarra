@@ -1,41 +1,27 @@
-# Trucker Cap Você na Guitarra
-## Piloto online com dois endereços
+# Trucker Cap Você na Guitarra | Edição Estudo
 
-As duas páginas usam o mesmo serviço de separação.
+Escolha um MP3 e toque em **Separar guitarra**. Ouça **Só guitarra** para
+tirar riffs e solos de ouvido. Use **Base sem guitarra** para tocar junto,
+com a voz e os demais instrumentos. **Baixar MP3** exporta a faixa selecionada.
+O aplicativo trabalha com uma música por vez durante a sessão.
 
-- Windows e Android em `/windows-android`.
-- iPhone, iPad e Mac em `/ios-mac`.
+## Publicar na Vercel
 
-Escolha um MP3 e toque em **Separar online**. O servidor devolve guitarra
-isolada, base com voz e base sem voz em MP3. A música original permanece
-disponível para reprodução a partir do arquivo selecionado. O navegador
-toca e salva os MP3s prontos, e a inferência roda no servidor.
+Extraia os arquivos na raiz de um projeto novo para teste ou em um branch
+de prévia. O `vercel.json` configura a pasta `dist` e os cabeçalhos para
+processamento paralelo em navegadores compatíveis. O projeto estático
+inclui o modelo e todas as dependências, sem necessidade de API.
 
-## Publicação do piloto privado
+Os endereços `/windows-android` e `/ios-mac` abrem o mesmo aplicativo. Use
+Chrome ou Edge no Windows, Chrome no Android e Safari no iPhone e no Mac.
+A velocidade depende do dispositivo, navegador e tamanho da música.
+O primeiro uso também precisa baixar aproximadamente 38 MB de modelo.
 
-O Dockerfile instala FFmpeg e ONNX Runtime e verifica o SHA-256 do modelo.
-Em uma hospedagem Docker com HTTPS, use uma instância com memória
-suficiente para o modelo. Reserve pelo menos 8 GiB para o teste inicial.
-No Render, `RENDER_EXTERNAL_URL` fornece a origem do serviço. Em outro
-provedor, defina `TC_APP_ORIGIN` com a origem HTTPS sem caminho. Configure
-`TC_PILOT_TOKEN` como segredo aleatório de pelo menos 32 caracteres. O
-comando de inicialização usa a porta `PORT` ou 10000. O endpoint de saúde é
-`/api/roformer?available=1`.
+## Motor
 
-O piloto usa uma chave compartilhada e aceita uma música por vez, com
-até 100 MB e dez minutos. Aceita MP3. O original recebido é apagado após
-o processamento. Os MP3s resultantes ficam na pasta temporária até o
-próximo trabalho ou a reinicialização do serviço. O botão Cancelar fecha
-a operação no navegador; um trabalho já enviado pode continuar no servidor.
-
-Antes de liberar para clientes, valide a duração ponta a ponta em Android e
-iOS e defina autenticação individual, concorrência e retenção de arquivos.
-
-## Usar a Vercel para os dois endereços
-
-Importe este projeto na Vercel. Ele publica somente os arquivos de `dist`.
-Configure `TC_SEPARATOR_URL` na Vercel com a URL HTTPS do servidor Docker
-terminada em `/api/roformer`, e defina `TC_APP_ORIGIN` no servidor Docker
-como o domínio HTTPS publicado pela Vercel, sem caminho ou barra final.
-O MP3 segue direto do navegador para o servidor Docker. Nunca inclua
-`TC_PILOT_TOKEN` nas variáveis da interface da Vercel.
+A versão usa as mesmas distribuições do ONNX Runtime Web e do codificador
+MP3 LAME do Separador Pan Click v0.5. O modelo do Separador tem quatro
+classes e não entrega guitarra dedicada. Esta edição usa o HTDemucs 6S
+compacto em INT8 para estimar a guitarra e subtraí-la do áudio original.
+O modelo compartilha operações internas entre as fontes, mesmo quando
+o aplicativo reconstrói somente o áudio da guitarra.

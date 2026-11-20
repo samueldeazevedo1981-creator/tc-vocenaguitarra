@@ -1,13 +1,1 @@
-{
-  "name": "trucker-cap-voce-na-guitarra",
-  "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  "engines": {
-    "node": "24.x"
-  },
-  "scripts": {
-    "build": "npm test && node configurar-vercel.mjs",
-    "test": "node tests/audio.test.mjs && node tests/mp3.test.cjs && node tests/import.test.cjs && node tests/speed.test.mjs && node tests/mix-beat.test.mjs && node tests/guitar-model.test.mjs && node tests/practice.test.mjs"
-  }
-}
+{"name":"trucker-cap-voce-na-guitarra-estudo","private":true,"type":"module"}

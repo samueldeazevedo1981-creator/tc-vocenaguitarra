@@ -1,27 +1,7 @@
 {
   "framework": null,
-  "installCommand": "npm ci --ignore-scripts",
-  "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "headers": [
-    {
-      "source": "/sw.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        }
-      ]
-    },
-    {
-      "source": "/index.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        }
-      ]
-    },
     {
       "source": "/(.*)",
       "headers": [
@@ -32,6 +12,15 @@
         {
           "key": "Cross-Origin-Embedder-Policy",
           "value": "require-corp"
+        }
+      ]
+    },
+    {
+      "source": "/models/guitarra-int8.onnx",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
         }
       ]
     }
