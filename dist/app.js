@@ -7,13 +7,7 @@ const MODEL_KEY='7ce55792e2231c93fbf92de95f5fd5b3a5e6c89f7db690dfd693e8f1dce5686
 const TRACKS=['guitar','vocals'];
 const isAndroid=navigator.userAgentData?.platform==='Android'||/Android/i.test(navigator.userAgent);
 const pilot=location.pathname==='/'||/^\/(windows-android|ios-mac)$/.test(location.pathname);
-if(pilot){
- $('clipLength').value='full';
- $('clipLength').closest('.processing-range').hidden=true;
- $('status').textContent='Escolha um MP3 para separar no servidor.';
- $('separate').hidden=true;
- $('model').closest('details').hidden=true;
-}
+let onlineAvailable=false;
 if(isAndroid){
  $('clipLength').value='7';
  $('androidProcessingHint').hidden=false;
@@ -52,7 +46,7 @@ function controls(){
  $('importedFile').disabled=busy;
  $('androidEngine').disabled=busy;
  $('removeImportedFile').disabled=busy||!importedFiles.length;
- $('separate').firstChild.textContent=$('clipLength').value==='7'?'Preparar prévia ':'Preparar música ';
+ $('separate').textContent=pilot&&onlineAvailable?'Separar faixas online':$('clipLength').value==='7'?'Separar faixas · prévia':'Separar faixas neste aparelho';
  if(!ready)$('loadModel').textContent='↓ Preparar IA';for(const id of ['loadModel','localModelBtn','modelFile','audioFile','clipStart','clipLength','customLength','separationMode','mp3Bitrate'])$(id).disabled=busy;$('loadModel').disabled=busy||ready||!globalThis.Worker||!globalThis.WebAssembly||!globalThis.crypto?.subtle;$('separate').disabled=busy||!selectedFile;$('roformerButton').disabled=busy||!selectedFile;$('cancel').hidden=!busy||jobKind==='imports';$('clipStart').disabled=busy||$('clipLength').value==='full';$('originalMp3').disabled=busy||!selectedFile;$('downloadMix').disabled=busy||!tracks.length;for(const id of ['soloGuitar','noGuitar','practiceSpeed','play','stop','seek'])$(id).disabled=busy||!tracks.length;$('originalMode').disabled=busy||!tracks.some(track=>track.key==='original');$('legacyOriginal').hidden=!tracks.length||tracks.some(track=>track.key==='original');$('noGuitarVoice').disabled=busy||!tracks.some(track=>track.key==='instrumental');$('legacyModes').hidden=!tracks.length||tracks.some(track=>track.key==='instrumental');$('saveSong').disabled=busy||!currentSong;$('songList').disabled=busy||!savedKeys.length;$('openSong').disabled=busy||!savedKeys.length;$('removeSong').disabled=busy||!savedKeys.length;}
 function setBusy(value){
  busy=value;
@@ -422,15 +416,27 @@ $('roformerForm').onsubmit=event=>{
 fetch(separatorApiUrl+'?available=1',{cache:'no-store'})
  .then(response=>response.ok?response.json():null)
  .then(config=>{
-   if(!config?.available||!config.practice){if(pilot)status('Separação online indisponível. Tente mais tarde.');return;}
-   $('roformerButton').hidden=false;
+   if(!config?.available||!config.practice)return;
+   onlineAvailable=true;
    $('onlinePilotAccess').hidden=!config.requiresKey;
    $('onlinePilotKey').required=Boolean(config.requiresKey);
+   if(pilot){
+     controls();
+     $('clipLength').closest('.processing-range').hidden=true;
+     $('model').closest('details').hidden=true;
+     $('separationInfo').textContent='A música inteira será separada no servidor.';
+   }else{
+     $('roformerButton').hidden=false;
+   }
  })
- .catch(()=>{if(pilot)status('Servidor de separação indisponível.');});
+ .catch(()=>{});
 
 async function prepareSong(){
  if(busy||!selectedFile)return;
+ if(pilot&&onlineAvailable){
+   $('roformerDialog').showModal();
+   return;
+ }
  try{
    await audioContext().resume();
    if(!ready)await prepare();
