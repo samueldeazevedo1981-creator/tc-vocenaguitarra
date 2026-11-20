@@ -1,6 +1,7 @@
 (() => {
   let pendingPrompt;
   let installed = false;
+  let updateButton = () => {};
 
   window.addEventListener('beforeinstallprompt', event => {
     event.preventDefault();
@@ -10,6 +11,7 @@
   window.addEventListener('appinstalled', () => {
     installed = true;
     pendingPrompt = undefined;
+    updateButton();
   });
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -24,7 +26,15 @@
     const platform = ios ? 'ios' : /Android/i.test(ua) ? 'android' :
       /Macintosh/i.test(ua) ? 'mac' : 'desktop';
 
+    const isInstalled = () => installed || standalone.matches || navigator.standalone === true;
+    updateButton = () => {
+      button.textContent = isInstalled() ? 'App instalado' : 'Instalar app';
+    };
+    updateButton();
+    standalone.addEventListener?.('change', updateButton);
+
     function showHelp(message, alreadyInstalled = false) {
+      document.getElementById('installTitle').textContent = alreadyInstalled ? 'App instalado' : 'Instalar app';
       status.textContent = message;
       status.hidden = !message;
       steps.hidden = alreadyInstalled;
@@ -47,8 +57,14 @@
     });
 
     button.addEventListener('click', async () => {
-      if (installed || standalone.matches || navigator.standalone === true) {
-        showHelp('O app já está instalado neste navegador.', true);
+      if (isInstalled()) {
+        const guidance = {
+          android: 'Para desinstalar, toque e segure o ícone do app e procure Desinstalar. Também pode usar as configurações de apps do Android.',
+          ios: 'Para remover, toque e segure o ícone do app na Tela de Início.',
+          mac: 'Para remover, use a opção de desinstalação do navegador ou remova o app pelo sistema.',
+          desktop: 'Para desinstalar, procure a opção no menu da janela do app ou nas configurações de apps do navegador.'
+        };
+        showHelp(guidance[platform], true);
         return;
       }
       if (!pendingPrompt) {
@@ -62,7 +78,10 @@
       try {
         const result = await prompt.prompt();
         const choice = result || await prompt.userChoice;
-        if (choice && choice.outcome === 'accepted') installed = true;
+        if (choice && choice.outcome === 'accepted') {
+          installed = true;
+          updateButton();
+        }
       } catch {
         showHelp('Use o menu do navegador para instalar.');
       } finally {

@@ -1,35 +1,17 @@
-# Trucker Cap Você na Guitarra | Edição Estudo
+# Trucker Cap Você na Guitarra · Piloto mobile portátil
 
-Escolha um MP3. A opção **Original** fica disponível na hora. Clique em
-**Separar guitarra** para liberar **Guitarra isolada**, **Sem guitarra**
-e **Sem voz e guitarra**. A guitarra e a voz são estimadas na mesma
-passagem do modelo. As bases são montadas quando você as usa.
+O motor HTDemucs compacto e seu modelo ONNX estão incluídos. O navegador envia o MP3 ao seu próprio computador ou servidor. O celular não roda o modelo de IA.
 
-As músicas separadas entram no **Setlist**. Organize com **Abrir**, **Subir**,
-**Descer** ou **Remover**, depois clique em **Salvar setlist** para guardar a
-ordem e as faixas editadas neste navegador. Depois de recarregar ou abrir
-o app novamente, use **Abrir setlist salvo**. Não é preciso rodar a IA outra
-vez. Salvar substitui a cópia anterior; as mudanças feitas após salvar ficam
-na sessão até salvar novamente. O setlist não sincroniza entre aparelhos e
-pode ser perdido se os dados do site forem apagados.
+## Testar no celular pelo Wi-Fi
 
-**Baixar MP3** baixa o arquivo original intacto ou codifica a faixa
-editada escolhida. A codificação da faixa editada só começa ao baixar.
+1. No computador, extraia o ZIP para uma pasta. Instale Python 3.12 e FFmpeg e confirme que o comando `ffmpeg` está no PATH.
+2. Na pasta extraída, execute `python -m pip install -r requirements.txt` e depois `python servidor.py`.
+3. Com o computador ligado e conectado à mesma rede Wi-Fi, abra no celular `http://IP-DO-COMPUTADOR:3000/`. Se necessário, permita que o Python receba conexões na rede privada. Use apenas uma rede de confiança.
 
-## Usar o setlist offline
+Com Docker, os passos de instalação são substituídos por `docker build -t trucker-cap-guitarra .` e `docker run --rm -p 3000:3000 trucker-cap-guitarra`.
 
-Abra o app uma vez com internet e aguarde a mensagem **App pronto para
-abrir offline neste navegador**. Salve o setlist no aparelho que será
-usado. Depois, mesmo sem internet, abra o mesmo endereço e toque em
-**Abrir setlist salvo**. O modelo de IA não faz parte do cache offline;
-prepare as músicas antes do show. O navegador pode remover os dados se
-ficar sem espaço ou se você apagar o armazenamento do site.
+O piloto aceita MP3 de até 100 MB e áudio de até 10 minutos. Processa uma música por vez. O áudio recebido e os resultados temporários são apagados quando o servidor termina de responder.
 
-## Publicar na Vercel
+## Acesso pela internet
 
-O `vercel.json` configura a pasta `dist` e os cabeçalhos para processamento
-paralelo em navegadores compatíveis. O projeto estático inclui o modelo.
-Os endereços `/windows-android` e `/ios-mac` abrem o mesmo aplicativo.
-
-O primeiro uso baixa aproximadamente 38 MB de modelo. O processamento
-acontece no navegador e a velocidade depende do aparelho e da música.
+Para disponibilizar fora do Wi-Fi, execute o contêiner num servidor seu ou numa hospedagem que aceite Docker e use um domínio HTTPS. HTTPS também habilita a instalação do app e a abertura offline. Antes de expor a API publicamente, configure seu controle de acesso e limites de uso no servidor. A velocidade depende da máquina que executa o motor e da conexão. O pacote não precisa de conta na Vercel, Blob ou API de IA de terceiros.

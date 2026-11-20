@@ -1,12 +1,13 @@
+import {separarOnline} from './separacao-online.js';
 import {clock,SAMPLE_RATE,playbackAudio} from './audio-utils.js';
-import {separarFaixas,compactarFaixa,montarFaixa} from './faixas.js';
+import {montarFaixa} from './faixas.js';
 
 import {salvarSetlist,abrirSetlist} from './setlist-storage.js';
 
 const $=id=>document.getElementById(id);
 const fileInput=$('file'), progress=$('progress'), status=$('status');
 const originalAudio=$('original'), speed=$('speed'), modes=[...document.querySelectorAll('[data-mode]')], songs=[];
-let context, selected, activeSong, decodedOriginal, renderCache, processingWorker, job;
+let context, selected, activeSong, decodedOriginal, renderCache, job;
 let storageBusy=false, setlistAlterado=false;
 let mode='original', audioURL, playbackRequest=0;
 let preparingTrack=false, activeSource=false;
@@ -121,6 +122,11 @@ async function changeMode(next) {
     updateModes();
     return;
   }
+  if(activeSong.edited){
+    setAudioSource(activeSong.edited[next],position,resume);
+    updateModes();
+    return;
+  }
   preparingTrack=true;
   setAudioSource(null);
   updateModes();
@@ -231,17 +237,6 @@ fileInput.onchange=()=>{
   report(song?'Música pronta no setlist.':'MP3 selecionado. Clique em Separar guitarra.');
 };
 
-async function loadWorker(current,threads) {
-  const worker=client('./separator-worker.js',{type:'module'});
-  current.worker=worker;
-  const response=await fetch('./models/guitarra-int8.onnx',{signal:current.signal});
-  if(!response.ok)throw Error('Não foi possível baixar o modelo de guitarra.');
-  const model=await response.arrayBuffer();
-  assertActive(current);
-  await worker.send({type:'load',buffer:model,threads,optimize:true},[model]);
-  return worker;
-}
-
 $('separate').onclick=async()=>{
   if(!selected||job||storageBusy)return;
   const current=new AbortController();
@@ -250,45 +245,20 @@ $('separate').onclick=async()=>{
   stop(true);
 
   try {
-    await audioContext().resume();
-    report('Preparando o motor de guitarra…');
-    const cores=navigator.hardwareConcurrency||2;
-    const phone=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
-    const threads=globalThis.crossOriginIsolated?Math.max(1,Math.min(phone?2:8,Math.floor(cores/2))):1;
-    if(!processingWorker){
-      try { processingWorker=await loadWorker(current,threads); }
-      catch(error) {
-        current.worker?.close();
-        assertActive(current);
-        if(threads===1)throw error;
-        report('Iniciando em modo compatível…');
-        processingWorker=await loadWorker(current,1);
-      }
-    }
-    current.worker=processingWorker;
-    report('Lendo o MP3…');
-    const file=selected,decoded=await decode(file);
+    const file=selected,started=performance.now();
+    report('Enviando MP3 para separação…');
+    const song=await separarOnline(file,current.signal,fraction=>{
+      const elapsed=clock((performance.now()-started)/1000);
+      const label=fraction>=1?'Preparando os MP3s':'Separando no servidor · '+Math.round(fraction*100)+'%';
+      report(label+' · '+elapsed,fraction);
+    });
     assertActive(current);
-    const original=channelData(decoded);
-    const stereo=()=>({left:new Float32Array(decoded.length),right:new Float32Array(decoded.length)});
-    const separated={guitar:stereo(),vocals:stereo()};
-    const started=performance.now();
-    report('Separando guitarra e voz…',0);
-    await separarFaixas(original,separated,async(left,right,overlap)=>{
-      assertActive(current);
-      const {result}=await processingWorker.send({type:'separate',left,right,overlap},[left.buffer,right.buffer]);
-      return result;
-    },fraction=>report('Separando guitarra e voz · '+Math.round(fraction*100)+'% · '+clock((performance.now()-started)/1000),fraction));
-    assertActive(current);
-    const song={file,length:decoded.length,guitar:compactarFaixa(separated.guitar),vocals:compactarFaixa(separated.vocals)};
     songs.push(song);
     setlistAlterado=true;
     openSong(file,song);
-    decodedOriginal=decoded;
     report('Faixas prontas. Música adicionada ao setlist da sessão.');
   } catch(error) {
     current.worker?.close();
-    processingWorker=null;
     report(current.signal.aborted?'Separação cancelada.':error.message);
   } finally {
     job=null;
@@ -304,6 +274,11 @@ $('save').onclick=async()=>{
   if(job||storageBusy||preparingTrack||!selected)return;
   if(mode==='original'){download(selected,selected.name);return;}
   if(!activeSong)return;
+  if(activeSong.edited){
+    const suffix={guitar:'Guitarra isolada',backing:'Sem guitarra',instrumental:'Sem voz e guitarra'};
+    download(activeSong.edited[mode],selected.name.replace(/\.mp3$/i,'')+' - '+suffix[mode]+'.mp3');
+    return;
+  }
   stop();
   const current=new AbortController();
   job=current;
@@ -400,7 +375,7 @@ async function prepararAberturaOffline() {
     const shell=new URL('./index.html',registration.scope).href;
     const ready=async()=>{
       if(!navigator.serviceWorker.controller)return;
-      const cached=await caches.match(shell,{cacheName:'trucker-cap-estudo-offline-3'});
+      const cached=await caches.match(shell,{cacheName:'trucker-cap-estudo-offline-portatil-1'});
       if(cached)indicator.textContent='App pronto para abrir offline neste navegador.';
     };
     navigator.serviceWorker.addEventListener('controllerchange',()=>{ready().catch(()=>{});});

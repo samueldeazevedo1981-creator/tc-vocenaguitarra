@@ -1,8 +1,8 @@
 const CACHE_PREFIX='trucker-cap-estudo-offline-';
-const CACHE=CACHE_PREFIX+'3';
+const CACHE=CACHE_PREFIX+'portatil-1';
 const assets=[
   './index.html','./style.css','./estudo.js','./audio-utils.js',
-  './faixas.js','./setlist-storage.js','./mp3-worker.js',
+  './separacao-online.js','./faixas.js','./setlist-storage.js','./mp3-worker.js',
   './vendor/lame/lame.min.js','./icon-192.png','./icon-512.png',
   './manifest.webmanifest','./LICENSES.txt','./install.js','./manual-instalacao.html','./guitarrista.webp'
 ];
