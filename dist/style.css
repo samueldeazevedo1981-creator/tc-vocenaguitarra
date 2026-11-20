@@ -1,0 +1,67 @@
+:root { color-scheme: dark; font: 16px/1.55 system-ui, sans-serif; background: #101510; color: #eef2e9; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; }
+main { max-width: 680px; margin: 0 auto; padding: clamp(20px, 6vw, 52px); }
+header { display: flex; align-items: center; gap: 16px; }
+header img { border-radius: 12px; }
+header p, h1 { margin: 0; }
+header p { color: #b1d4a4; }
+h1 { font-size: clamp(1.8rem, 6vw, 2.6rem); line-height: 1.12; }
+section { margin: 20px 0; padding: 20px; background: #1b241b; border-radius: 14px; }
+label { display: block; font-weight: 650; margin-bottom: 6px; }
+input, select, button { font: inherit; }
+input, progress { display: block; width: 100%; }
+input[type=file] { max-width: 100%; }
+select, button { border-radius: 8px; padding: 8px 13px; min-height: 44px; }
+button { border: 0; background: #b0f58b; color: #141c13; cursor: pointer; font-weight: 700; }
+button.secondary { background: #344534; color: #f0f7ef; }
+button:disabled { opacity: .5; cursor: default; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+#status, footer { color: #c4d0bf; }
+#status { min-height: 2.5em; }
+progress, input[type=range] { accent-color: #b0f58b; }
+a { color: inherit; }
+audio { width: 100%; }
+h2 { margin: 0; font-size: 1.2rem; }
+#setlist p { margin: 4px 0 12px; color: #c4d0bf; }
+#songs { padding-left: 24px; margin: 0; }
+#songs li + li { margin-top: 12px; }
+.song-name { display: block; overflow-wrap: anywhere; }
+.song-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
+.app-actions { align-items: center; }
+.app-actions a, dialog a, footer a, .installation-manual main > a { text-decoration: underline; }
+dialog { border: 1px solid #51664e; border-radius: 14px; padding: 22px; width: min(90vw, 510px); background: #1b241b; color: #eef2e9; }
+dialog::backdrop { background: #0009; }
+dialog form { display: flex; justify-content: flex-end; }
+dialog dt { font-weight: 700; }
+dialog dd { margin-left: 0; }
+.installation-manual h1, .installation-manual h2 { margin-top: 20px; }
+:root { background: #130f20; color: #f4edf9; }
+body { background: radial-gradient(ellipse at 0 0, #392452 0%, transparent 55%), radial-gradient(ellipse at 100% 85%, #11333f 0%, transparent 65%); }
+main { max-width: 780px; }
+.practice-card { padding: 0; overflow: hidden; border: 2px solid transparent; border-radius: 22px; background: linear-gradient(#191426,#191426) padding-box, linear-gradient(140deg,#c088fa,#af507c 48%,#48c5d9) border-box; }
+.practice-hero { display: block; width: 100%; height: auto; }
+.practice-body { padding: clamp(15px, 4vw, 28px); }
+.practice-heading { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.practice-heading h2 { font-size: clamp(1.65rem, 5vw, 2.65rem); font-weight: 900; }
+.practice-heading h2 span { display: inline-grid; place-items: center; width: 1.35em; aspect-ratio: 1; border-radius: 50%; font-size: .7em; background: #bdff81; color: #231b29; vertical-align: middle; }
+.practice-heading p { overflow-wrap: anywhere; margin: 0; }
+.practice-body p { color: #d3ccd7; }
+.mode-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin-block: 14px; }
+.mode-grid button { display: flex; align-items: center; gap: 9px; text-align: left; padding: 8px 10px; min-height: 54px; color: #f7f3f8; background: #2b2d30; border: 1px solid #ffffff40; }
+.mode-grid button[data-mode=instrumental] {background: #242d3c;}
+.mode-grid button[data-mode=guitar] {background: #34253a;}
+.mode-grid button > span:first-child { color: #c7fa83; }
+.mode-grid button[data-mode=instrumental] > span:first-child { color: #72eee4; }
+.mode-grid button[data-mode=guitar] > span:first-child { color: #f3a8d3; }
+.mode-grid button[aria-pressed=true]:not(:disabled) { background: #dab5f7; color: #22162c; }
+.mode-grid button[aria-pressed=true]:not(:disabled) > span:first-child { color: inherit; }
+.mode-grid strong,.mode-grid small { display: block; line-height: 1.25; }
+.mode-grid small { font-weight: 500; margin-top: 3px; }
+.player-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.player-row audio { flex: 1 1 260px; min-width: 0; }
+.player-row label { display: flex; gap: 8px; align-items: center; margin: 0; }
+.study-hint { font-size: .875rem; }
+.upload-controls { border-top: 1px solid #ffffff26; margin-top: 20px; padding-top: 16px; }
+@media (max-width: 360px) { .mode-grid { grid-template-columns: 1fr; } }
