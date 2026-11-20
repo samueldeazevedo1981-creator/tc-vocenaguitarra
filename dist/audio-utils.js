@@ -27,3 +27,28 @@ export function appendSeparationBlock(output, track, window, overlap) {
     }
   }
 }
+
+// PCM is wrapped only for the browser's player. Downloads use the MP3 encoder.
+export function playbackAudio(left,right,sampleRate) {
+  const dataSize=left.length*4;
+  const bytes=new ArrayBuffer(44+dataSize);
+  const view=new DataView(bytes);
+  for(const [offset,text] of [[0,'RIFF'],[8,'WAVEfmt '],[36,'data']]){
+    for(let i=0;i<text.length;i++)view.setUint8(offset+i,text.charCodeAt(i));
+  }
+  view.setUint32(4,36+dataSize,true);
+  view.setUint32(16,16,true);
+  view.setUint16(20,1,true);
+  view.setUint16(22,2,true);
+  view.setUint32(24,sampleRate,true);
+  view.setUint32(28,sampleRate*4,true);
+  view.setUint16(32,4,true);
+  view.setUint16(34,16,true);
+  view.setUint32(40,dataSize,true);
+  const pcm=value=>Math.round(Math.max(-1,Math.min(1,Number.isFinite(value)?value:0))*32767);
+  for(let i=0;i<left.length;i++){
+    view.setInt16(44+i*4,pcm(left[i]),true);
+    view.setInt16(46+i*4,pcm(right[i]),true);
+  }
+  return new Blob([bytes],{type:'audio/wav'});
+}

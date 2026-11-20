@@ -1,14 +1,15 @@
-import {clock,SAMPLE_RATE} from './audio-utils.js';
+import {clock,SAMPLE_RATE,playbackAudio} from './audio-utils.js';
 import {separarFaixas,compactarFaixa,montarFaixa} from './faixas.js';
 
 import {salvarSetlist,abrirSetlist} from './setlist-storage.js';
 
 const $=id=>document.getElementById(id);
 const fileInput=$('file'), progress=$('progress'), status=$('status');
-const modeInput=$('mode'), originalAudio=$('original'), songs=[];
-let context, selected, activeSong, decodedOriginal, renderCache, processingWorker, job, player;
+const originalAudio=$('original'), speed=$('speed'), modes=[...document.querySelectorAll('[data-mode]')], songs=[];
+let context, selected, activeSong, decodedOriginal, renderCache, processingWorker, job;
 let storageBusy=false, setlistAlterado=false;
-let offset=0, startedAt=0, animation, originalURL, playbackRequest=0;
+let mode='original', audioURL, playbackRequest=0;
+let preparingTrack=false, activeSource=false;
 
 function client(path,options) {
   const worker=new Worker(new URL(path,import.meta.url),options);
@@ -42,11 +43,9 @@ function interfaceState(active) {
   $('openSetlist').disabled=active;
   fileInput.disabled=active;
   $('separate').disabled=active||!selected||Boolean(activeSong);
-  modeInput.disabled=active;
-  $('play').disabled=active;
-  $('seek').disabled=active;
+  updateModes();
   $('cancel').hidden=!job;
-  $('save').disabled=active||!selected;
+
   progress.hidden=!active;
   renderSetlist();
 }
@@ -63,23 +62,17 @@ function channelData(buffer) {
 
 function stop(reset=false) {
   playbackRequest++;
+  preparingTrack=false;
   originalAudio.pause();
-  cancelAnimationFrame(animation);
-  if(player) {
-    offset=context.currentTime-startedAt;
-    player.onended=null;
-    player.stop();
-    player.disconnect();
-    player=null;
-  }
-  if(reset)offset=0;
-  $('play').textContent='Ouvir';
-  position();
+  if(reset&&originalAudio.readyState)originalAudio.currentTime=0;
+  updateModes();
 }
 
-function position() {
-  $('seek').value=offset;
-  $('position').textContent=clock(offset);
+function applySpeed() {
+  originalAudio.preservesPitch=true;
+  originalAudio.webkitPreservesPitch=true;
+  originalAudio.defaultPlaybackRate=Number(speed.value)||1;
+  originalAudio.playbackRate=originalAudio.defaultPlaybackRate;
 }
 
 function audioContext() {
@@ -87,36 +80,65 @@ function audioContext() {
   return context??=new AudioContext();
 }
 
-async function play() {
-  if(player){stop();return;}
-  if(job||storageBusy||!activeSong||modeInput.value==='original')return;
-  const request=++playbackRequest, song=activeSong, mode=modeInput.value;
-  await audioContext().resume();
-  if(request!==playbackRequest)return;
-  const buffer=await preparePlayback(song,mode,()=>request===playbackRequest);
-  if(!buffer||player||request!==playbackRequest)return;
-  $('seek').max=buffer.duration;
-  if(offset>=buffer.duration)offset=0;
-  const node=context.createBufferSource();
-  node.buffer=buffer;
-  node.connect(context.destination);
-  node.onended=()=>{
-    if(player!==node)return;
-    player=null;
-    node.disconnect();
-    stop(true);
-  };
-  player=node;
-  startedAt=context.currentTime-offset;
-  node.start(0,offset);
-  $('play').textContent='Pausar';
-  const tick=()=>{
-    if(!player)return;
-    $('seek').value=Math.min(buffer.duration,context.currentTime-startedAt);
-    $('position').textContent=clock(Number($('seek').value));
-    animation=requestAnimationFrame(tick);
-  };
-  tick();
+function updateModes() {
+  const busy=Boolean(job)||storageBusy;
+  for(const button of modes){
+    const active=button.dataset.mode===mode;
+    button.setAttribute('aria-pressed',String(active));
+    button.disabled=busy||!selected||(!activeSong&&button.dataset.mode!=='original');
+  }
+  $('save').disabled=busy||!selected||preparingTrack;
+  speed.disabled=!activeSource;
+}
+
+function setAudioSource(source,position=0,resume=false) {
+  if(audioURL)URL.revokeObjectURL(audioURL);
+  audioURL=source?URL.createObjectURL(source):null;
+  activeSource=Boolean(audioURL);
+  originalAudio.onloadedmetadata=audioURL?()=>{
+    applySpeed();
+    originalAudio.currentTime=Math.min(position,originalAudio.duration||position);
+    if(resume&&!job&&!storageBusy)originalAudio.play().catch(()=>{});
+  }:null;
+  if(audioURL)originalAudio.src=audioURL;
+  else originalAudio.removeAttribute('src');
+  originalAudio.load();
+  applySpeed();
+}
+
+async function changeMode(next) {
+  if(job||storageBusy||!selected||(!activeSong&&next!=='original'))return;
+  if(next===mode&&(activeSource||preparingTrack))return;
+  const position=originalAudio.currentTime||0;
+  const resume=activeSource&&!originalAudio.paused;
+  stop();
+  const current=++playbackRequest;
+  mode=next;
+  updateModes();
+  if(next==='original'){
+    renderCache=null;
+    setAudioSource(selected,position,resume);
+    updateModes();
+    return;
+  }
+  preparingTrack=true;
+  setAudioSource(null);
+  updateModes();
+  try {
+    audioContext();
+    const buffer=await preparePlayback(activeSong,next,()=>current===playbackRequest);
+    if(!buffer||current!==playbackRequest)return;
+    const pcm=channelData(buffer);
+    setAudioSource(playbackAudio(pcm.left,pcm.right,SAMPLE_RATE),position,resume);
+    renderCache=null;
+  } catch(error) {
+    if(current===playbackRequest)report(error.message);
+  } finally {
+    if(current===playbackRequest){
+      preparingTrack=false;
+      updateModes();
+    }
+  }
 }
 
 function assertActive(current) {
@@ -143,32 +165,16 @@ async function preparePlayback(song,mode,isCurrent) {
   return buffer;
 }
 
-function showMode() {
-  const original=modeInput.value==='original';
-  originalAudio.hidden=!original;
-  $('transport').hidden=original;
-  $('play').hidden=original;
-}
-
 function openSong(file,song) {
   stop(true);
   decodedOriginal=null;
   renderCache=null;
   selected=file;
   activeSong=song;
-  if(originalURL)URL.revokeObjectURL(originalURL);
-  originalURL=file?URL.createObjectURL(file):null;
-  if(originalURL)originalAudio.src=originalURL;
-  else {
-    originalAudio.removeAttribute('src');
-    originalAudio.load();
-  }
+  mode='original';
+  setAudioSource(file);
   $('results').hidden=!file;
   $('songTitle').textContent=file?.name||'';
-  for(const option of modeInput.options)option.disabled=option.value!=='original'&&!song;
-  modeInput.value=song?'guitar':'original';
-  if(song)$('seek').max=song.length/SAMPLE_RATE;
-  showMode();
   interfaceState(false);
 }
 
@@ -291,19 +297,11 @@ $('separate').onclick=async()=>{
 };
 
 $('cancel').onclick=()=>{job?.abort();job?.worker?.close();};
-$('play').onclick=()=>play().catch(error=>report(error.message));
-modeInput.onchange=()=>{stop(true);renderCache=null;showMode();};
-$('seek').oninput=()=>{
-  const next=Number($('seek').value), playing=Boolean(player);
-  stop();
-  offset=next;
-  position();
-  if(playing)$('play').onclick();
-};
+for(const button of modes)button.onclick=()=>changeMode(button.dataset.mode);
+speed.onchange=applySpeed;
 
 $('save').onclick=async()=>{
-  if(job||storageBusy||!selected)return;
-  const mode=modeInput.value;
+  if(job||storageBusy||preparingTrack||!selected)return;
   if(mode==='original'){download(selected,selected.name);return;}
   if(!activeSong)return;
   stop();
@@ -402,7 +400,7 @@ async function prepararAberturaOffline() {
     const shell=new URL('./index.html',registration.scope).href;
     const ready=async()=>{
       if(!navigator.serviceWorker.controller)return;
-      const cached=await caches.match(shell,{cacheName:'trucker-cap-estudo-offline-1'});
+      const cached=await caches.match(shell,{cacheName:'trucker-cap-estudo-offline-2'});
       if(cached)indicator.textContent='App pronto para abrir offline neste navegador.';
     };
     navigator.serviceWorker.addEventListener('controllerchange',()=>{ready().catch(()=>{});});

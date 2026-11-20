@@ -22,7 +22,33 @@
       <a href="./manual-instalacao.html">Manual de instruções</a>
     </nav>
     <p>Isole a guitarra para tirar riffs de ouvido ou pratique com uma base da sua música.</p>
-    <section aria-label="Separar guitarra">
+    <section class="practice-card" aria-labelledby="functionsTitle">
+      <img class="practice-hero" src="./guitarrista.webp" width="1440" height="810" alt="Guitarrista com boné Trucker Cap e guitarra verde. Você na Guitarra.">
+      <div class="practice-body">
+        <div class="practice-heading">
+          <h2 id="functionsTitle">Veja as funções <span aria-hidden="true">↓</span></h2>
+          <p id="songTitle" aria-live="polite"></p>
+        </div>
+        <p>Escolha um modo e dê o play. Troque de modo para comparar o mesmo trecho.</p>
+        <div id="modes" class="mode-grid" role="group" aria-label="Faixa de estudo">
+          <button type="button" data-mode="original" aria-pressed="true" disabled><span aria-hidden="true">♫</span><span class="mode-copy"><strong>Música inteira</strong><small>Compare com a gravação original</small></span></button>
+          <button type="button" data-mode="backing" aria-pressed="false" disabled><span aria-hidden="true">◈</span><span class="mode-copy"><strong>Sem guitarra</strong><small>Toque com a banda e a voz</small></span></button>
+          <button type="button" data-mode="instrumental" aria-pressed="false" disabled><span aria-hidden="true">≋</span><span class="mode-copy"><strong>Sem guitarra e voz</strong><small>Toque só com o acompanhamento</small></span></button>
+          <button type="button" data-mode="guitar" aria-pressed="false" disabled><span aria-hidden="true">ϟ</span><span class="mode-copy"><strong>Só guitarra</strong><small>Estude riffs e solos isolados</small></span></button>
+        </div>
+        <div id="results" hidden>
+          <div class="player-row">
+            <audio id="original" controls controlslist="nodownload" preload="metadata" aria-label="Reprodução da faixa selecionada"></audio>
+            <label for="speed">Velocidade <select id="speed">
+              <option value="1">100%</option><option value="0.9">90%</option>
+              <option value="0.85">85%</option><option value="0.75">75%</option>
+              <option value="0.65">65%</option><option value="0.5">50%</option>
+            </select></label>
+          </div>
+          <p class="study-hint">Experimente 75% para estudar um trecho mais devagar, mantendo o tom.</p>
+          <button id="save" type="button" class="secondary">Baixar MP3</button>
+        </div>
+      <div class="upload-controls" aria-label="Separar guitarra">
       <label for="file">Música em MP3</label>
       <input id="file" type="file" accept=".mp3,audio/mpeg">
       <div class="actions">
@@ -31,24 +57,7 @@
       </div>
       <progress id="progress" max="1" hidden aria-label="Progresso"></progress>
       <p id="status" role="status">Escolha um MP3. O primeiro uso baixa o modelo de aproximadamente 38 MB.</p>
-    </section>
-    <section id="results" aria-label="Faixas para estudar" hidden>
-      <h2 id="songTitle"></h2>
-      <label for="mode">Faixa de estudo</label>
-      <select id="mode">
-        <option value="original">Original</option>
-        <option value="guitar">Guitarra isolada</option>
-        <option value="backing">Sem guitarra</option>
-        <option value="instrumental">Sem voz e guitarra</option>
-      </select>
-      <div class="actions">
-        <button id="play" hidden>Ouvir</button>
-        <button id="save" class="secondary">Baixar MP3</button>
       </div>
-      <audio id="original" controls preload="metadata"></audio>
-      <div id="transport" hidden>
-        <label for="seek">Posição <span id="position"></span></label>
-        <input type="range" id="seek" min="0" max="1" value="0" step="0.01">
       </div>
     </section>
     <section id="setlist" aria-labelledby="setlistTitle">
